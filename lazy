@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+from subprocess import Popen, PIPE
+import time
+import os
+import threading
+import argparse
+import signal
+import functools
+
+def getidle():
+    proc = Popen(['xprintidle'], stdout=PIPE)
+    val = proc.stdout.read()
+    return int(val)
+
+def control_loop(pid):
+    os.kill(pid, signal.SIGCONT)
+    state = 'RUNNING'
+    while True:
+        t = getidle()
+        if state == 'RUNNING' and t < 500:
+            os.kill(pid, signal.SIGSTOP)
+            state = 'STOPPED'
+        elif state == 'STOPPED' and t > 1000:
+            os.kill(pid, signal.SIGCONT)
+            state = 'RUNNING'
+        time.sleep(0.050)
+
+def main():
+    parser = argparse.ArgumentParser(description='Run a command only when idle.')
+    parser.add_argument('command', type=str, nargs='*', help='command to execute in shell')
+    parser.add_argument('-p', '--pid', type=int, default=None, help='control a pid instead')
+    args = parser.parse_args()
+    if args.pid is not None:
+        control_loop(args.pid)
+    else:
+        proc = Popen(' '.join(args.command), shell=True)
+        threading.Thread(target=functools.partial(control_loop, proc.pid), daemon=True).start()
+        proc.wait()
+
+if __name__ == '__main__':
+    main()
