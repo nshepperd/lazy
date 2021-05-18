@@ -27,13 +27,13 @@ def control_loop(pid):
 
 def main():
     parser = argparse.ArgumentParser(description='Run a command only when idle.')
-    parser.add_argument('command', type=str, nargs='*', help='command to execute in shell')
-    parser.add_argument('-p', '--pid', type=int, default=None, help='control a pid instead')
+    parser.add_argument('command', type=str, nargs='*', help='command to execute')
+    parser.add_argument('-p', '--pid', type=int, default=None, help='process id instead of command')
     args = parser.parse_args()
     if args.pid is not None:
         control_loop(args.pid)
     else:
-        proc = Popen(' '.join(args.command), shell=True)
+        proc = Popen(args.command)
         threading.Thread(target=functools.partial(control_loop, proc.pid), daemon=True).start()
         proc.wait()
 

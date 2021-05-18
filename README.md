@@ -7,7 +7,7 @@ use (defined as no activity within the last second).
 
 Invoke either with a command,
 
-    lazy train_my_gpu_intensive_model.py
+    lazy ./train_my_gpu_intensive_model.py
 
 or with a PID of something already running.
 
