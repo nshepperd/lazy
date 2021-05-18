@@ -1,9 +1,9 @@
 # Lazy, a tool for running things in idle time
 
 Mostly used to stop CUDA ML model training from making my desktop
-unusable. Simply monitors keyboard/mouse idleness using xprintidle,
-and pauses the given process using SIGSTOP whenever the machine is in
-use (defined as no activity within the last second).
+unusable. Simply monitors keyboard/mouse idleness using `xprintidle`,
+and pauses the given process using `SIGSTOP` whenever the machine is
+in use (defined as no activity within the last second).
 
 Invoke either with a command,
 
