@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from subprocess import Popen, PIPE, TimeoutExpired
+import multiprocessing
 import time
 import os, sys
 import threading
@@ -38,6 +39,19 @@ def control_loop(pid):
             os.kill(pid, signal.SIGCONT)
             state = 'RUNNING'
         time.sleep(0.050)
+
+def start():
+    """Import this module from your application and call start() to begin
+    the watchdog from within python.
+
+    Note that like in PID mode, the first SIGSTOP will background the
+    command in bash (as if you pressed ^Z), which might be an
+    inconvenience.
+
+    """
+    pid = os.getpid()
+    proc = multiprocessing.Process(target=control_loop, args=[pid])
+    proc.start()
 
 def main():
     parser = argparse.ArgumentParser(description='Run a command only when idle.')
