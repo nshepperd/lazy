@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 from subprocess import Popen, PIPE
 import time
-import os
+import os, sys
 import threading
 import argparse
 import signal
 import functools
 
+verbose = False
+
 def getidle():
     proc = Popen(['xprintidle'], stdout=PIPE)
-    val = proc.stdout.read()
-    return int(val)
+    val = int(proc.stdout.read())
+    if verbose:
+        print(f'xprintidle: {val}', file=sys.stderr)
+    return val
 
 def control_loop(pid):
     os.kill(pid, signal.SIGCONT)
@@ -18,9 +22,13 @@ def control_loop(pid):
     while True:
         t = getidle()
         if state == 'RUNNING' and t < 500:
+            if verbose:
+                print(f'kill -SIGSTOP {pid}', file=sys.stderr)
             os.kill(pid, signal.SIGSTOP)
             state = 'STOPPED'
         elif state == 'STOPPED' and t > 1000:
+            if verbose:
+                print(f'kill -SIGCONT {pid}', file=sys.stderr)
             os.kill(pid, signal.SIGCONT)
             state = 'RUNNING'
         time.sleep(0.050)
@@ -29,7 +37,9 @@ def main():
     parser = argparse.ArgumentParser(description='Run a command only when idle.')
     parser.add_argument('command', type=str, nargs='*', help='command to execute')
     parser.add_argument('-p', '--pid', type=int, default=None, help='process id instead of command')
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
     args = parser.parse_args()
+    globals()['verbose'] = args.verbose
     if args.pid is not None:
         control_loop(args.pid)
     else:
